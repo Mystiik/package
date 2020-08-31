@@ -1,0 +1,13 @@
+{
+  "name": "gnicolas/package",
+  "description": "Tools for a fresh project",
+  "type": "library",
+  "license": "MIT",
+  "authors": [{
+    "name": "Guillaume Nicolas",
+    "email": "guillaume.nicolas15@gmail.com"
+  }],
+  "autoload": {
+    "psr-4": { "GN\\Loadercssjs\\": "src/" }
+  }
+}

@@ -9,7 +9,12 @@
   }],
   "autoload": {
     "psr-4": {
-      "GN\\Loadercssjs\\": "loader-css-js/src"
+      "GN\\LoaderCssJs\\": "vendor/gnicolas/package/loader-css-js/src/",
+      "GN\\GlbObjFunc\\": "vendor/gnicolas/package/global-object-function/",
+      "MultipleFolder\\": [
+        "Folder1/",
+        "Folder2/"
+      ]
     }
   }
 }

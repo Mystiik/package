@@ -7,7 +7,7 @@ use GN\LoaderCssJs\Loader;
 require_once('src/Loader.php');
 
 // header('HTTP/1.1 304 Not Modified');
-header('Cache-Control: max-age=84600, must-revalidate');
+// header('Cache-Control: max-age=84600, must-revalidate');
 header('content-type: text/css');
 
 $root = $_SERVER['DOCUMENT_ROOT'] . "/assets/libs/";

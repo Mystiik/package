@@ -7,7 +7,7 @@ namespace namespaceName;
  * @method getPropertyOne()
  * @method getPropertyTwo()
  */
-class className
+class ClassName
 {
 	use \GN\GlbObjFunc\__Get;
 	use \GN\GlbObjFunc\Hydrate;

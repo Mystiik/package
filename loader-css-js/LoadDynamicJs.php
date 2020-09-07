@@ -6,8 +6,6 @@ use GN\LoaderCssJs\Loader;
 // L'autoloader est inutilisable car le fichier est appelé en HTML
 require_once('src/Loader.php');
 
-// header('HTTP/1.0 304 Not Modified');
-// header('Cache-Control: max-age=3600, must-revalidate');
 header('content-type: application/x-javascript');
 
 $root = $_SERVER['DOCUMENT_ROOT'] . "/assets/js/";

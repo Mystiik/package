@@ -30,18 +30,17 @@ class Srcset
 	private static $maxUsefullSize; // Minimum of size usage or img size => max usefull size
 
 
-	public static function src(string $filepath, array $size, $resizeParam = self::RESIZE_NORMAL, $resizeUpdate = null)
+	public static function src(string $filepath, array $size, $resizeParam = self::RESIZE_NORMAL)
 	{
 		// Image construction
 		$img = new Image($_SERVER['DOCUMENT_ROOT'] . $filepath);
 
 		// Get the file name (without extension)
 		self::$filename = pathinfo($filepath)['filename'];
-
 		self::setSizeUsage($img, $size);
 		self::definePath();
 		self::resize($img, $resizeParam);
-		return self::generateHTML($img);
+		return self::generateHTML($img, $filepath);
 	}
 
 
@@ -109,7 +108,7 @@ class Srcset
 				}
 
 				$savingPath .= "/" . $path[$i];
-				if (!file_exists($_SERVER['DOCUMENT_ROOT'] . $savingPath)) {
+				if (self::RESIZE_UPDATE and !file_exists($_SERVER['DOCUMENT_ROOT'] . $savingPath)) {
 					mkdir($_SERVER['DOCUMENT_ROOT'] . $savingPath);
 				}
 
@@ -126,13 +125,11 @@ class Srcset
 			$SIZE = self::SIZE[$i];
 			// $SIZE_PREC = self::SIZE[$i - 1] ?? 0;
 
-			// Is resize update requested ?
-			$resizeUpdate = $resizeUpdate ?? self::RESIZE_UPDATE;
-
 			// Is resize update needed ?
-			$resizeNeed = !file_exists(self::$savingPath . "/$SIZE" . "/" . self::$filename . ".jpg");
+			// $resizeNeed = !file_exists(self::$savingPath . "/$SIZE" . "/" . self::$filename . ".jpg");
+			$resizeNeed = false;
 
-			if ($resizeUpdate or $resizeNeed) {
+			if (self::RESIZE_UPDATE or $resizeNeed) {
 				if (!($SIZE == "src" or $SIZE < self::$maxUsefullSize)) {
 					continue;
 				} else {
@@ -195,7 +192,7 @@ class Srcset
 		}
 	}
 
-	private static function generateHTML(Image $img)
+	private static function generateHTML(Image $img, $filepath)
 	{
 		//------------------------------------------------------------------
 		// Print HTML code
@@ -220,6 +217,9 @@ class Srcset
 					$return .= $path . " " . $SIZE . "w, ";
 				}
 			} else {
+				if (!file_exists($_SERVER['DOCUMENT_ROOT'] . "/$path")) {
+					$path = $filepath;
+				}
 				$return .= $path . " " . $img->getWidth() . "w, ";
 				$return .= "' ";
 

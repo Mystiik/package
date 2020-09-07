@@ -104,7 +104,10 @@ class Srcset
 
 	private static function resize(Image $img, $resizeParam)
 	{
-		foreach (self::SIZE as $SIZE) {
+		for ($i = 0; $i < count(self::SIZE); $i++) {
+			$SIZE = self::SIZE[$i];
+			$SIZE_PREC = self::SIZE[$i - 1] ?? 0;
+
 			// Is resize update requested ?
 			$resizeUpdate = $resizeUpdate ?? self::RESIZE_UPDATE;
 
@@ -112,8 +115,7 @@ class Srcset
 			$resizeNeed = !file_exists(self::$savingPath . "/$SIZE" . "/" . self::$filename . ".jpg");
 
 			if ($resizeUpdate or $resizeNeed) {
-				// If the target size is bigger than the max usefull size, then it's not necessary to generate img
-				if ($SIZE != "src" and self::$maxUsefullSize < $SIZE) {
+				if (!($SIZE == "src" or $SIZE_PREC < self::$maxUsefullSize or $SIZE < self::$maxUsefullSize)) {
 					continue;
 				} else {
 					// Check that the dst folder exists

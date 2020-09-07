@@ -15,11 +15,6 @@ class Image
 	use \GN\GlbObjFunc\__Get;
 
 	/**
-	 * @var int jpg compression level
-	 */
-	const JPG_COMPRESSION = 50;
-
-	/**
 	 * @var string contain path to the image
 	 */
 	private $filepath;

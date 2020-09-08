@@ -21,13 +21,12 @@ Loader::readfiles($root, [
 	"jarallax/dist/jarallax-element.min.js",
 	// Autres
 	"bootstrap/dist/js/bootstrap.bundle.min.js",
-	"flickity/dist/flickity.pkgd.min.js",
+	"flickity/flickity.pkgd.js",
 	"flickity-fade/flickity-fade.js",
 	"aos/dist/aos.js",
 	"smooth-scroll/dist/smooth-scroll.min.js",
 	"typed.js/lib/typed.min.js",
 	"countup.js/dist/countUp.min.js",
 	"@fancyapps/fancybox/dist/jquery.fancybox.min.js",
-	"imagesloaded/imagesloaded.pkgd.min.js",
 	"google-analytics/google-analytics.min.js",
 ]);

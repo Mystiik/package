@@ -19,7 +19,7 @@ class Srcset
 	const RESIZE_BOTH = "both"; // do 50% cropping centered, 50% resizing
 	const MAX_SCREEN_SIZE = 1920; // use to set a base calculation for $size = xxvw
 	const BREAK_SIZE = [992, 768, 576]; // break size of desktop, tablet, mobile
-	const SIZE = [100, 250, 500, 750, 1200, "src"];
+	const SIZE = [1, 40, 100, 250, 500, 750, 1200, "src"];
 
 	// Must declare static because the main function is static => $this doen't exist
 	private static $savingPath;
@@ -140,43 +140,77 @@ class Srcset
 
 					// Resize
 					if ($SIZE != "src") {
-						$src_img = $img->getImg();
-						$dst_x = 0;
-						$dst_y = 0;
-						$dst_w = $SIZE;
-						$dst_h = $SIZE * $img->getHeight() / $img->getWidth(); // Produit en croix
-						$dst_h = round($dst_h / 10) * 10; // Round to 10px
+						if ($SIZE != self::SIZE[0]) {
+							$src_img = $img->getImg();
+							$dst_x = 0;
+							$dst_y = 0;
+							$dst_w = $SIZE;
+							$dst_h = $SIZE * $img->getHeight() / $img->getWidth(); // Produit en croix
+							$dst_h = max(round($dst_h / 10), 1) * 10; // Round to 10px, min 10
 
-						switch ($resizeParam) {
-							case self::RESIZE_NORMAL:
-								// Define sizes
-								$src_x = 0;
-								$src_y = 0;
-								$src_w = $img->getWidth();
-								$src_h = $img->getHeight();
-								$dst_img = imagecreatetruecolor($dst_w, $dst_h);
-								imagecopyresized($dst_img, $src_img, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h);
-								break;
-							case self::RESIZE_CROP:
-								// Define sizes
-								$src_x = ($img->getWidth() - $dst_w) / 2;
-								$src_y = ($img->getHeight() - $dst_h) / 2;
-								$src_w = $dst_w;
-								$src_h = $dst_h;
-								$dst_img = imagecreatetruecolor($dst_w, $dst_h);
-								imagecopyresized($dst_img, $src_img, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h);
-								break;
-							case self::RESIZE_BOTH:
-								// Define sizes
-								$src_x = ($img->getWidth() - $dst_w) / 4;
-								$src_y = ($img->getHeight() - $dst_h) / 4;
-								$src_w = $dst_w + ($img->getWidth() - $dst_w) / 2;
-								$src_h = $dst_h + ($img->getHeight() - $dst_h) / 2;
-								$dst_img = imagecreatetruecolor($dst_w, $dst_h);
-								imagecopyresized($dst_img, $src_img, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h);
-								break;
-							default:
-								throw new \Exception("Wrong resizeParam given, arg passed: \"$resizeParam\"", 1);
+							switch ($resizeParam) {
+								case self::RESIZE_NORMAL:
+									// Define sizes
+									$src_x = 0;
+									$src_y = 0;
+									$src_w = $img->getWidth();
+									$src_h = $img->getHeight();
+									$dst_img = imagecreatetruecolor($dst_w, $dst_h);
+									imagecopyresized($dst_img, $src_img, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h);
+									break;
+								case self::RESIZE_CROP:
+									// Define sizes
+									$src_x = ($img->getWidth() - $dst_w) / 2;
+									$src_y = ($img->getHeight() - $dst_h) / 2;
+									$src_w = $dst_w;
+									$src_h = $dst_h;
+									$dst_img = imagecreatetruecolor($dst_w, $dst_h);
+									imagecopyresized($dst_img, $src_img, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h);
+									break;
+								case self::RESIZE_BOTH:
+									// Define sizes
+									$src_x = ($img->getWidth() - $dst_w) / 4;
+									$src_y = ($img->getHeight() - $dst_h) / 4;
+									$src_w = $dst_w + ($img->getWidth() - $dst_w) / 2;
+									$src_h = $dst_h + ($img->getHeight() - $dst_h) / 2;
+									$dst_img = imagecreatetruecolor($dst_w, $dst_h);
+									imagecopyresized($dst_img, $src_img, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h);
+									break;
+								default:
+									throw new \Exception("Wrong resizeParam given, arg passed: \"$resizeParam\"", 1);
+							}
+						} else {
+							// This will handle the first print of an image
+							// First, resize to a 4x4 box
+							$src_img = $img->getImg();
+							$dst_x = 0;
+							$dst_y = 0;
+							$dst_w = $SIZE;
+							$dst_h = $SIZE;
+
+							// Define sizes
+							$src_x = 0;
+							$src_y = 0;
+							$src_w = $img->getWidth();
+							$src_h = $img->getHeight();
+							$dst_img = imagecreatetruecolor($dst_w, $dst_h);
+							imagecopyresized($dst_img, $src_img, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h);
+
+							// Then resize to 100px to keep ratios when used in js systems that build on img load (masonry, carousel...)
+							$src_img = $dst_img;
+							$dst_x = 0;
+							$dst_y = 0;
+							$dst_w = 100;
+							$dst_h = 100 * $img->getHeight() / $img->getWidth(); // Produit en croix
+							$dst_h = max(round($dst_h / 1), 1) * 1;
+
+							// Define sizes
+							$src_x = 0;
+							$src_y = 0;
+							$src_w = $SIZE;
+							$src_h = $SIZE;
+							$dst_img = imagecreatetruecolor($dst_w, $dst_h);
+							imagecopyresized($dst_img, $src_img, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h);
 						}
 					} else {
 						// Src image will still be compressed as JPG 50%
@@ -206,7 +240,7 @@ class Srcset
 		$return .= "' ";
 
 		// srcset="wolf-400.jpg 400w,"
-		$return .= "srcset='";
+		$return .= "data-srcset='";
 
 		foreach (self::SIZE as $SIZE) {
 			$path = self::$savingPath . "/$SIZE" . "/" . self::$filename . ".jpg";
@@ -224,7 +258,15 @@ class Srcset
 				$return .= "' ";
 
 				// src="wolf-400.jpg"
-				$return .= "src='$path'";
+				$return .= "data-src='$path'";
+
+				// src='data:image/png;base64,---echo base64_encode(file_get_contents("dir/dir/img.png"));---
+				$path = self::$savingPath . "/" . self::SIZE[0] . "/" . self::$filename . ".jpg";
+				// $return .= "src='$path' ";
+				$return .= "src='data:image/jpeg;base64," . base64_encode(file_get_contents($_SERVER['DOCUMENT_ROOT'] . "/$path")) . "' ";
+
+				// Lazy-loading - Direct styling with js
+				// $return .= "onload=\"this.style.filter = 'blur(20px)'; this.style.opacity = '1'; this.style.transition = 'all 0.8s linear';\" ";
 			}
 		}
 

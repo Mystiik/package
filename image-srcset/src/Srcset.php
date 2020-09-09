@@ -11,6 +11,7 @@ use GN\Image;
 class Srcset
 {
 	const RESIZE_UPDATE = false; // true -> resize images every call
+	const LAZY_LOAD = true;
 	const DIR_SAVE_IMG = "/assets/img-@generated"; // from document_root
 	const JPG_COMPRESSION = 50; // jpg compression level
 
@@ -239,7 +240,7 @@ class Srcset
 		}
 		$return .= "' ";
 
-		// srcset="wolf-400.jpg 400w,"
+		// srcset="wolf-400.jpg 400w,"if (self::LAZY_LOAD) {
 		$return .= "data-srcset='";
 
 		foreach (self::SIZE as $SIZE) {
@@ -260,13 +261,17 @@ class Srcset
 				// src="wolf-400.jpg"
 				$return .= "data-src='$path'";
 
-				// src='data:image/png;base64,---echo base64_encode(file_get_contents("dir/dir/img.png"));---
-				$path = self::$savingPath . "/" . self::SIZE[0] . "/" . self::$filename . ".jpg";
-				// $return .= "src='$path' ";
-				$return .= "src='data:image/jpeg;base64," . base64_encode(file_get_contents($_SERVER['DOCUMENT_ROOT'] . "/$path")) . "' ";
+				if (self::LAZY_LOAD) {
+					// src='data:image/png;base64,---echo base64_encode(file_get_contents("dir/dir/img.png"));---
+					$path = self::$savingPath . "/" . self::SIZE[0] . "/" . self::$filename . ".jpg";
+					// $return .= "src='$path' ";
+					$return .= "src='data:image/jpeg;base64," . base64_encode(file_get_contents($_SERVER['DOCUMENT_ROOT'] . "/$path")) . "' ";
 
-				// Lazy-loading - Direct styling with js
-				// $return .= "onload=\"this.style.filter = 'blur(20px)'; this.style.opacity = '1'; this.style.transition = 'all 0.8s linear';\" ";
+					// Lazy-loading - Direct styling with js
+					// $return .= "onload=\"this.style.filter = 'blur(20px)'; this.style.opacity = '1'; this.style.transition = 'all 0.8s linear';\" ";
+				} else {
+					$return = str_replace("data-", "", $return);
+				}
 			}
 		}
 

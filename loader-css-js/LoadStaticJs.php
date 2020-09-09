@@ -16,9 +16,9 @@ Loader::readfiles($root, [
 	// Prioritaire
 	"jquery/dist/jquery.min.js",
 	"isotope-layout/dist/isotope.pkgd.min.js",
-	"jarallax/dist/jarallax.min.js",
-	"jarallax/dist/jarallax-video.min.js",
-	"jarallax/dist/jarallax-element.min.js",
+	// "jarallax/dist/jarallax.min.js",
+	// "jarallax/dist/jarallax-video.min.js",
+	// "jarallax/dist/jarallax-element.min.js",
 	// Autres
 	"bootstrap/dist/js/bootstrap.bundle.min.js",
 	"flickity/flickity.pkgd.js",
@@ -28,5 +28,5 @@ Loader::readfiles($root, [
 	"typed.js/lib/typed.min.js",
 	"countup.js/dist/countUp.min.js",
 	"@fancyapps/fancybox/dist/jquery.fancybox.min.js",
-	"google-analytics/google-analytics.min.js",
+	// "google-analytics/google-analytics.min.js",
 ]);

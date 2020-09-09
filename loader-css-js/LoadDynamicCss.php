@@ -12,5 +12,6 @@ $root = $_SERVER['DOCUMENT_ROOT'] . "/assets/css/";
 
 Loader::readfiles($root, [
 	"lazy-load.css",
-	"theme.min.css",
+	"theme.css",
+	"bootstrap.min.css",
 ]);

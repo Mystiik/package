@@ -10,7 +10,7 @@ use GN\Image;
  */
 class Srcset
 {
-	const RESIZE_UPDATE = false; // true -> resize images every call
+	const RESIZE_UPDATE = true; // true -> resize images every call
 	const LAZY_LOAD = true;
 	const DIR_SAVE_IMG = "/assets/img-@generated"; // from document_root
 	const JPG_COMPRESSION = 50; // jpg compression level

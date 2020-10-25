@@ -14,7 +14,7 @@ $root = $_SERVER['DOCUMENT_ROOT'] . "/assets/libs/";
 
 Loader::readfiles($root, [
 	// Prioritaire
-	"jquery/dist/jquery.min.js",
+	"jquery/jquery.min.js",
 	"isotope-layout/dist/isotope.pkgd.min.js",
 	// "jarallax/dist/jarallax.min.js",
 	// "jarallax/dist/jarallax-video.min.js",

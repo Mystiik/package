@@ -1,0 +1,1 @@
+<?= GN\Translate::_r('Rendez votre site -var-', ['var' => "yolo"]) ?>

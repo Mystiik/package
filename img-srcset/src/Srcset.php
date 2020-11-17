@@ -3,17 +3,17 @@
 namespace GN;
 
 use GN\Image;
+use GN\GlbObjFunc\Glb;
 
 /**
  * @param $filepath - dir to the image src
  * @param $size - approx size of the rendered image
  */
-class Srcset
-{
-	const RESIZE_UPDATE = true; // true -> resize images every call
+class Srcset {
+	const RESIZE_UPDATE = false; // true -> resize images every call
 	const LAZY_LOAD = true;
 	const DIR_SAVE_IMG = "/assets/img-@generated"; // from document_root
-	const JPG_COMPRESSION = 50; // jpg compression level
+	const JPG_COMPRESSION = 50; // jpg compression level (50 - opti)
 
 	const RESIZE_NORMAL = "normal"; // just resize
 	const RESIZE_CROP = "crop"; // resize by cropping, centered
@@ -31,22 +31,31 @@ class Srcset
 	private static $maxUsefullSize; // Minimum of size usage or img size => max usefull size
 
 
-	public static function src(string $filepath, array $size, $resizeParam = self::RESIZE_NORMAL)
-	{
+	public static function src(string $filepath, array $size, $resizeParam = self::RESIZE_NORMAL, $destPath = null) {
 		// Image construction
 		$img = new Image($_SERVER['DOCUMENT_ROOT'] . $filepath);
 
 		// Get the file name (without extension)
 		self::$filename = pathinfo($filepath)['filename'];
 		self::setSizeUsage($img, $size);
-		self::definePath();
+		self::definePath($destPath);
 		self::resize($img, $resizeParam);
 		return self::generateHTML($img, $filepath);
 	}
 
+	// public static function createOptimizedImage(string $filepath, array $size, $resizeParam = self::RESIZE_NORMAL, $destPath = null) {
+	// 	// Image construction
+	// 	$img = new Image($_SERVER['DOCUMENT_ROOT'] . $filepath);
 
-	private static function setSizeUsage(Image $img, array $size)
-	{
+	// 	// Get the file name (without extension)
+	// 	self::$filename = pathinfo($filepath)['filename'];
+	// 	self::setSizeUsage($img, $size);
+	// 	self::definePath($destPath);
+	// 	self::resize($img, $resizeParam);
+	// }
+
+
+	private static function setSizeUsage(Image $img, array $size) {
 		if (count($size) == 1 or count($size) == count(self::BREAK_SIZE)) {
 			for ($i = 0; $i < count($size); $i++) {
 				switch (substr($size[$i], -2)) {
@@ -88,50 +97,37 @@ class Srcset
 		}
 	}
 
-	private static function definePath()
-	{
+	private static function definePath($destPath) {
 		if (!isset(self::$savingPath)) {
 			// $_SERVER['DOCUMENT_ROOT'] 	-> C:/wamp64/www/Gnicolas/
 			// $_SERVER['SCRIPT_FILENAME']	-> C:/wamp64/www/Gnicolas/index.php
-			$path = str_replace($_SERVER['DOCUMENT_ROOT'], "", $_SERVER['SCRIPT_FILENAME']);
+			$path = str_replace($_SERVER['DOCUMENT_ROOT'], "", $destPath ?? $_SERVER['SCRIPT_FILENAME']);
 			$path = str_replace(".php", "", $path);
 			$path = self::DIR_SAVE_IMG . "/$path";
-			$path = explode("/", $path);
+			$path = str_replace("//", "/", $path);
+			$path = str_replace("//", "/", $path);
+			// $path = explode("/", $path);
 
-			// Folder path generation
-			$i = 0;
-			$savingPath = "";
-			while ($i < count($path)) {
-				if ($path[$i] == "") {
-					// Depile 1st element
-					array_shift($path);
-					continue;
+			if (self::RESIZE_UPDATE or !file_exists($_SERVER['DOCUMENT_ROOT'] . $path)) {
+				if (!mkdir($_SERVER['DOCUMENT_ROOT'] . $path, 0777, true)) {
+					throw new \Exception("definePath: Folder hasn't been created at: " . $_SERVER['DOCUMENT_ROOT'] . $path, 1);
 				}
-
-				$savingPath .= "/" . $path[$i];
-				if (self::RESIZE_UPDATE and !file_exists($_SERVER['DOCUMENT_ROOT'] . $savingPath)) {
-					mkdir($_SERVER['DOCUMENT_ROOT'] . $savingPath);
-				}
-
-				$i++;
 			}
-
-			self::$savingPath = $savingPath;
+			self::$savingPath = $path;
 		}
 	}
 
-	private static function resize(Image $img, $resizeParam)
-	{
+	private static function resize(Image $img, $resizeParam) {
 		for ($i = 0; $i < count(self::SIZE); $i++) {
 			$SIZE = self::SIZE[$i];
 			// $SIZE_PREC = self::SIZE[$i - 1] ?? 0;
 
 			// Is resize update needed ?
-			// $resizeNeed = !file_exists(self::$savingPath . "/$SIZE" . "/" . self::$filename . ".jpg");
-			$resizeNeed = false;
-
+			$resizeNeed = !file_exists($_SERVER['DOCUMENT_ROOT'] . self::$savingPath . "/$SIZE" . "/" . self::$filename . ".jpg");
+			// $resizeNeed = false;
 			if (self::RESIZE_UPDATE or $resizeNeed) {
-				if (!($SIZE == "src" or $SIZE < self::$maxUsefullSize)) {
+				// if (!($SIZE == "src" or $SIZE < self::$maxUsefullSize)) {
+				if (!($SIZE == "src" or $SIZE < self::$maxUsefullSize or true)) {
 					continue;
 				} else {
 					// Check that the dst folder exists
@@ -221,14 +217,15 @@ class Srcset
 
 
 					// Save the image
-					imagejpeg($dst_img, $_SERVER['DOCUMENT_ROOT'] . self::$savingPath . "/$SIZE" . "/" . self::$filename . ".jpg", self::JPG_COMPRESSION);
+					if (!imagejpeg($dst_img, $_SERVER['DOCUMENT_ROOT'] . self::$savingPath . "/$SIZE" . "/" . self::$filename . ".jpg", self::JPG_COMPRESSION)) {
+						throw new \Exception("resize: ImageJpeg hasn't been created at: " . $_SERVER['DOCUMENT_ROOT'] . self::$savingPath . "/$SIZE" . "/" . self::$filename . ".jpg", 1);
+					};
 				}
 			}
 		}
 	}
 
-	private static function generateHTML(Image $img, $filepath)
-	{
+	private static function generateHTML(Image $img, $filepath) {
 		//------------------------------------------------------------------
 		// Print HTML code
 		//------------------------------------------------------------------
@@ -276,5 +273,40 @@ class Srcset
 		}
 
 		return $return;
+	}
+
+	public static function getFileList($path = self::DIR_SAVE_IMG) {
+		return (self::directoryIterator($path));
+	}
+
+	private static function directoryIterator($path) {
+		$extToInclude = ['jpg'];
+		// $folderToIgnore = ['vendor', 'assets', 'lang'];
+		$folderToIgnore = [];
+		$array = [];
+
+		if (file_exists($path)) {
+			foreach (new \DirectoryIterator($path) as $fileInfo) {
+				if ($fileInfo->isDir() and !$fileInfo->isDot() and !in_array($fileInfo->getFilename(), $folderToIgnore)) {
+					$array = array_merge(self::directoryIterator($fileInfo->getPathname()), $array);
+				}
+
+				if ($fileInfo->isFile()) {
+					if (isset(pathinfo($fileInfo->getPathname())['extension']) and in_array(pathinfo($fileInfo->getPathname())['extension'], $extToInclude)) {
+						// $content = file_get_contents($fileInfo->getPathname());
+						// if (strpos($content, "<?= GN\Translate::text('") !== false) {
+						// $array[$fileInfo->getPathname()] = Glb::getInbetweenStrings($content, "<?= GN\Translate::text('", "') ?");
+
+						$array[str_replace(".jpg", "", $fileInfo->getFileName())] = [
+							'path' => str_replace($_SERVER['DOCUMENT_ROOT'], "", $fileInfo->getPathname()),
+							'name' => $fileInfo->getFileName(),
+							'size' => \GN\GlbObjFunc\Glb::getSizeFromBytes($fileInfo->getPathname()),
+						];
+						// }
+					}
+				}
+			}
+		}
+		return $array;
 	}
 }

@@ -1,6 +1,8 @@
 <?php
 require_once($_SERVER['DOCUMENT_ROOT'] . '/include/init.php');
 
+use GN\GlbObjFunc\Glb;
+
 function directoryIterator($path)
 {
     $extToInclude = ['php'];
@@ -20,7 +22,7 @@ function directoryIterator($path)
 
                 $content = file_get_contents($fileInfo->getPathname());
                 if (strpos($content, "<?= GN\Translate::text('") !== false) {
-                    $array[$fileInfo->getPathname()] = getInbetweenStrings($content, "<?= GN\Translate::text('", "') ?");
+                    $array[$fileInfo->getPathname()] = Glb::getInbetweenStrings($content, "<?= GN\Translate::text('", "') ?");
                 }
             }
         }
@@ -30,12 +32,3 @@ function directoryIterator($path)
 }
 
 var_dump(directoryIterator(ROOT));
-
-// $dir = new DirectoryIterator(ROOT);
-// var_dump($dir);
-// foreach ($dir as $file) {
-// $content = file_get_contents($file->getPathname());
-// if (strpos($content, $string) !== false) {
-// // Bingo
-// }
-// }

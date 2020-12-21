@@ -82,7 +82,7 @@
 
         <div id="upload-preview" class="d-flex flex-wrap col-12" style="order:0;">
           <?php
-          $fileList = GN\Srcset::getFileList($_SERVER['DOCUMENT_ROOT'] . GN\Srcset::DIR_SAVE_IMG . "/upload/src");
+          $fileList = GN\Srcset::getImgList($_SERVER['DOCUMENT_ROOT'] . GN\Srcset::DIR_SAVE_IMG . "/upload/src");
           foreach ($fileList as $file) :
           ?>
           <div class="preview_element col-12 col-md-6 col-lg-4 col-xxl-3 p-2 flex-flow-wrap" id="0">

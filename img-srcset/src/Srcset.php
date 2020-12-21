@@ -11,7 +11,7 @@ use GN\GlbObjFunc\Glb;
  */
 class Srcset {
 	const RESIZE_UPDATE = false; // true -> resize images every call
-	const LAZY_LOAD = true;
+	const LAZY_LOAD = false;
 	const DIR_SAVE_IMG = "/assets/img-@generated"; // from document_root
 	const JPG_COMPRESSION = 50; // jpg compression level (50 - opti)
 
@@ -32,15 +32,20 @@ class Srcset {
 
 
 	public static function src(string $filepath, array $size, $resizeParam = self::RESIZE_NORMAL, $destPath = null) {
-		// Image construction
-		$img = new Image($_SERVER['DOCUMENT_ROOT'] . $filepath);
+		try {
+			// Image construction
+			$filepath = str_replace($_SERVER['DOCUMENT_ROOT'], "", $filepath);
+			$img = new Image($_SERVER['DOCUMENT_ROOT'] . $filepath);
 
-		// Get the file name (without extension)
-		self::$filename = pathinfo($filepath)['filename'];
-		self::setSizeUsage($img, $size);
-		self::definePath($destPath);
-		self::resize($img, $resizeParam);
-		return self::generateHTML($img, $filepath);
+			// Get the file name (without extension)
+			self::$filename = pathinfo($filepath)['filename'];
+			self::setSizeUsage($img, $size);
+			self::definePath($destPath);
+			self::resize($img, $resizeParam);
+			return self::generateHTML($img, $filepath);
+		} catch (\Exception $e) {
+			throw $e;
+		}
 	}
 
 	// public static function createOptimizedImage(string $filepath, array $size, $resizeParam = self::RESIZE_NORMAL, $destPath = null) {
@@ -74,6 +79,11 @@ class Srcset {
 							throw new \Exception("Viewport size can't exceed 100, arg passed: \"$size[$i]\"", 1);
 						}
 						break;
+					case 'rc': //src
+						self::$sizeValue[$i] = 0;
+						self::$sizeUsage[$i] = 0;
+						self::$sizeType[$i] = "src";
+						break;
 					default:
 						// If nothing if found, throw error
 						throw new \Exception("Wrong size, arg passed: \"$size[$i]\"", 1);
@@ -98,23 +108,21 @@ class Srcset {
 	}
 
 	private static function definePath($destPath) {
-		if (!isset(self::$savingPath)) {
-			// $_SERVER['DOCUMENT_ROOT'] 	-> C:/wamp64/www/Gnicolas/
-			// $_SERVER['SCRIPT_FILENAME']	-> C:/wamp64/www/Gnicolas/index.php
-			$path = str_replace($_SERVER['DOCUMENT_ROOT'], "", $destPath ?? $_SERVER['SCRIPT_FILENAME']);
-			$path = str_replace(".php", "", $path);
-			$path = self::DIR_SAVE_IMG . "/$path";
-			$path = str_replace("//", "/", $path);
-			$path = str_replace("//", "/", $path);
-			// $path = explode("/", $path);
+		// $_SERVER['DOCUMENT_ROOT'] 	-> C:/wamp64/www/Gnicolas/
+		// $_SERVER['SCRIPT_FILENAME']	-> C:/wamp64/www/Gnicolas/index.php
+		$path = str_replace($_SERVER['DOCUMENT_ROOT'], "", $destPath ?? $_SERVER['SCRIPT_FILENAME']);
+		$path = str_replace(".php", "", $path);
+		$path = self::DIR_SAVE_IMG . "/$path";
+		$path = str_replace("//", "/", $path);
+		$path = str_replace("//", "/", $path);
+		// $path = explode("/", $path);
 
-			if (self::RESIZE_UPDATE or !file_exists($_SERVER['DOCUMENT_ROOT'] . $path)) {
-				if (!mkdir($_SERVER['DOCUMENT_ROOT'] . $path, 0777, true)) {
-					throw new \Exception("definePath: Folder hasn't been created at: " . $_SERVER['DOCUMENT_ROOT'] . $path, 1);
-				}
+		if (self::RESIZE_UPDATE or !file_exists($_SERVER['DOCUMENT_ROOT'] . $path)) {
+			if (!mkdir($_SERVER['DOCUMENT_ROOT'] . $path, 0777, true)) {
+				throw new \Exception("definePath: Folder hasn't been created at: " . $_SERVER['DOCUMENT_ROOT'] . $path, 1);
 			}
-			self::$savingPath = $path;
 		}
+		self::$savingPath = $path;
 	}
 
 	private static function resize(Image $img, $resizeParam) {
@@ -123,16 +131,16 @@ class Srcset {
 			// $SIZE_PREC = self::SIZE[$i - 1] ?? 0;
 
 			// Is resize update needed ?
-			$resizeNeed = !file_exists($_SERVER['DOCUMENT_ROOT'] . self::$savingPath . "/$SIZE" . "/" . self::$filename . ".jpg");
+			$resizeNeed = !file_exists($_SERVER['DOCUMENT_ROOT'] . self::$savingPath . "" . "/" . self::$filename . ".jpg");
 			// $resizeNeed = false;
 			if (self::RESIZE_UPDATE or $resizeNeed) {
-				// if (!($SIZE == "src" or $SIZE < self::$maxUsefullSize)) {
-				if (!($SIZE == "src" or $SIZE < self::$maxUsefullSize or true)) {
+				if (!($SIZE == "src" or $SIZE < self::$maxUsefullSize)) {
+					// if (!($SIZE == "src" or $SIZE < self::$maxUsefullSize or true)) {
 					continue;
 				} else {
 					// Check that the dst folder exists
-					if (!file_exists($_SERVER['DOCUMENT_ROOT'] . self::$savingPath . "/$SIZE")) {
-						mkdir($_SERVER['DOCUMENT_ROOT'] . self::$savingPath . "/$SIZE");
+					if (!file_exists($_SERVER['DOCUMENT_ROOT'] . self::$savingPath . "")) {
+						mkdir($_SERVER['DOCUMENT_ROOT'] . self::$savingPath . "");
 					}
 
 					// Resize
@@ -217,8 +225,8 @@ class Srcset {
 
 
 					// Save the image
-					if (!imagejpeg($dst_img, $_SERVER['DOCUMENT_ROOT'] . self::$savingPath . "/$SIZE" . "/" . self::$filename . ".jpg", self::JPG_COMPRESSION)) {
-						throw new \Exception("resize: ImageJpeg hasn't been created at: " . $_SERVER['DOCUMENT_ROOT'] . self::$savingPath . "/$SIZE" . "/" . self::$filename . ".jpg", 1);
+					if (!imagejpeg($dst_img, $_SERVER['DOCUMENT_ROOT'] . self::$savingPath . "" . "/" . self::$filename . ".jpg", self::JPG_COMPRESSION)) {
+						throw new \Exception("resize: ImageJpeg hasn't been created at: " . $_SERVER['DOCUMENT_ROOT'] . self::$savingPath . "" . "/" . self::$filename . ".jpg", 1);
 					};
 				}
 			}
@@ -241,7 +249,7 @@ class Srcset {
 		$return .= "data-srcset='";
 
 		foreach (self::SIZE as $SIZE) {
-			$path = self::$savingPath . "/$SIZE" . "/" . self::$filename . ".jpg";
+			$path = self::$savingPath . "" . "/" . self::$filename . ".jpg";
 
 			if ($SIZE != "src") {
 				if (file_exists($_SERVER['DOCUMENT_ROOT'] . "/$path")) {
@@ -275,8 +283,8 @@ class Srcset {
 		return $return;
 	}
 
-	public static function getFileList($path = self::DIR_SAVE_IMG) {
-		return (self::directoryIterator($path));
+	public static function getImgList($path = self::DIR_SAVE_IMG) {
+		return (self::directoryIterator($_SERVER['DOCUMENT_ROOT'] . $path));
 	}
 
 	private static function directoryIterator($path) {
@@ -293,16 +301,11 @@ class Srcset {
 
 				if ($fileInfo->isFile()) {
 					if (isset(pathinfo($fileInfo->getPathname())['extension']) and in_array(pathinfo($fileInfo->getPathname())['extension'], $extToInclude)) {
-						// $content = file_get_contents($fileInfo->getPathname());
-						// if (strpos($content, "<?= GN\Translate::text('") !== false) {
-						// $array[$fileInfo->getPathname()] = Glb::getInbetweenStrings($content, "<?= GN\Translate::text('", "') ?");
-
 						$array[str_replace(".jpg", "", $fileInfo->getFileName())] = [
 							'path' => str_replace($_SERVER['DOCUMENT_ROOT'], "", $fileInfo->getPathname()),
 							'name' => $fileInfo->getFileName(),
 							'size' => \GN\GlbObjFunc\Glb::getSizeFromBytes($fileInfo->getPathname()),
 						];
-						// }
 					}
 				}
 			}

@@ -10,8 +10,7 @@ namespace GN;
  * @method getWidth()
  * @method getHeight()
  */
-class Image
-{
+class Image {
 	use \GN\GlbObjFunc\__Get;
 
 	/**
@@ -40,8 +39,7 @@ class Image
 	private $height;
 
 
-	public function __construct($filepath)
-	{
+	public function __construct($filepath) {
 		$this->filepath = $filepath;
 
 		// [0] => width, [1] => height, [2] => imgType, 
@@ -55,8 +53,7 @@ class Image
 		//imagejpeg($im, $nom_image, self::JPG_COMPRESSION);
 	}
 
-	private function imageCreateFromAny()
-	{
+	private function imageCreateFromAny() {
 		// Allowed types
 		// https://www.php.net/manual/fr/function.exif-imagetype.php
 		switch ($this->type) {
@@ -73,7 +70,7 @@ class Image
 				$this->img = imageCreateFromBmp($this->filepath);
 				break;
 			default:
-				throw new \Exception("Img $this->filepath is not allowed", 1);
+				throw new \Exception("Img $this->filepath is not allowed, it's type is $this->type", 1);
 		}
 	}
 }

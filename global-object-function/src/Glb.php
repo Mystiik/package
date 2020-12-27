@@ -62,7 +62,7 @@ class Glb {
                     $getInBetweenString->str = $explodeElementClean;
                     $getInBetweenString->strStart = $strStart + 1;
                     $getInBetweenString->strEnd = $strStart + strlen($explodeElementClean) + 1;
-                    // $getInBetweenString->strPos = strpos($str, $explodeElementClean);
+                    $getInBetweenString->strPos = strpos($str, $explodeElementClean);
                     $getInBetweenString->type = "";
 
                     $array[$strStart] = $getInBetweenString;
@@ -72,7 +72,8 @@ class Glb {
                 $strStart += $explodeClean[1];
 
                 if (isset($explode[1])) {
-                    $strStart +=  strlen($explode[1]);
+                    unset($explode[0]);
+                    $strStart +=  strlen(implode($end, $explode));
                 }
                 $strStart += strlen($end);
             } else {

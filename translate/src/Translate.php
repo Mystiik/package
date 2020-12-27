@@ -2,9 +2,6 @@
 
 namespace GN;
 
-use GN\GlbObjFunc\Glb;
-use GN\GlbObjFunc\GetInBetweenString;
-
 /**
  * @param $filepath - dir to the image src
  * @param $size - approx size of the rendered image
@@ -37,6 +34,10 @@ class Translate extends TranslateBase {
     }
 
     static function save($array, $lang) {
+        // Folder creation
+        if (!file_exists(self::$langPath)) mkdir(self::$langPath . '/', 0777, true);
+
+        // File save
         $json = json_encode($array, JSON_UNESCAPED_UNICODE);
         $json = str_replace(":{", ": {\n\t\t", $json);
         $json = str_replace("{\"", "{\n\t\"", $json);

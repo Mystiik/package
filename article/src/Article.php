@@ -18,11 +18,11 @@ class Article {
     use \GN\GlbObjFunc\Hydrate;
 
     const CATEGORY_LIST = [
-        0 => 'Ingenierie Projets',
-        1 => 'Gestion Des Risques',
-        2 => 'Conseils',
-        3 => 'Sûreté France',
-        4 => 'Sûreté Monde',
+        0 => 'Actualités',
+        1 => 'Ingenierie Projets',
+        2 => 'Assistance',
+        3 => 'Sûreté/Sécurité',
+        4 => 'Conseil',
     ];
 
     private $id;

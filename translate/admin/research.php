@@ -67,4 +67,4 @@ function directoryIterator($path) {
 }
 
 // var_dump(directoryIterator(ROOT));
-var_dump(directoryIterator(ROOT . '/lowtech/'));
+// var_dump(directoryIterator(ROOT . '/lowtech/'));

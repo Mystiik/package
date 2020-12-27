@@ -47,6 +47,7 @@ class TranslateBase {
         $array = [];
         foreach ($folderPathList as $folderPath) $array += self::directoryIterator($folderPath);
         // var_dump($array);
+
         // Modify them: 'bla' => <?= GN\Translate::text('bla'); ?<
         foreach ($array as $filePath => $textList) {
             if (file_exists($filePath)) {
@@ -59,7 +60,10 @@ class TranslateBase {
                 foreach ($textList as $text) {
                     // Change file content
                     if (!$isArticle) {
-                        if (strpos($text->str, '<?= GN\Translate::text(') === false) {
+                        if (
+                            strpos($text->str, '<?= GN\Translate::text(') === false and
+                            strpos($text->str, '<?=') === false
+                        ) {
                             $textNew = str_replace("'", "\'", $text->str);
                             $textNew = "<" . "?= GN\Translate::text('" . $textNew . "'); ?" . ">";
                             $contentLeft = substr($content, 0, $text->strStart);
@@ -82,6 +86,7 @@ class TranslateBase {
                 // var_dump($content);
                 fwrite($f, $content);
                 fclose($f);
+
                 //
                 $originNew[$filePathClean] = array_reverse($originNew[$filePathClean], true);
                 $fr[$filePathClean] = array_flip($originNew[$filePathClean]);
@@ -89,12 +94,12 @@ class TranslateBase {
         }
         //
         Translate::save($originNew, $saveOriginArrayName);
-        Translate::save($fr, $saveOriginArrayName . '-fr');
+        Translate::save($fr, 'fr');
     }
 
     public static function directoryIterator($path) {
         $extToInclude = ['php', 'txt'];
-        $folderToIgnore = ['vendor', 'assets', 'lang', 'test'];
+        $folderToIgnore = ['vendor', 'assets', 'lang', 'test', 'admin'];
         $array = [];
 
         foreach (new \DirectoryIterator($path) as $fileInfo) {
@@ -116,16 +121,21 @@ class TranslateBase {
                     $getInBetweenStringsList += Glb::getInbetweenStrings($content, "<h5", "</h5>");
                     $getInBetweenStringsList += Glb::getInbetweenStrings($content, "<h6", "</h6>");
                     $getInBetweenStringsList += Glb::getInbetweenStrings($content, "<li>", "</li>");
+                    $getInBetweenStringsList += Glb::getInbetweenStrings($content, "<label", "</label>");
                     $getInBetweenStringsList += Glb::getInbetweenStrings($content, "<p", "</p>");
-                    $getInBetweenStringsList += Glb::getInbetweenStrings($content, "src=\"", "\"");
                     ksort($getInBetweenStringsList);
 
                     $aList = Glb::getInbetweenStrings($content, "<a", "</a>");
                     $getInBetweenStringsList = addWithoutOverlap($getInBetweenStringsList, $aList);
 
+                    $srcList = Glb::getInbetweenStrings($content, "<img src=\"", "\"");
+                    $getInBetweenStringsList = addWithoutOverlap($getInBetweenStringsList, $srcList);
+
+                    $spanList = Glb::getInbetweenStrings($content, "<span", "</span>");
+                    $getInBetweenStringsList = addWithoutOverlap($getInBetweenStringsList, $spanList);
+
                     foreach ($getInBetweenStringsList as $getInBetweenStrings) {
                         if (!empty(trim($getInBetweenStrings->str))) {
-                            // $array[$fileInfo->getPathname()][$getInBetweenStrings->strStart] = $getInBetweenStrings->strStart . " " . $getInBetweenStrings->strEnd . " " . $getInBetweenStrings->str;
                             $array[$fileInfo->getPathname()][$getInBetweenStrings->strStart] = $getInBetweenStrings;
                         }
                     }
@@ -162,6 +172,14 @@ function addWithoutOverlap($getInBetweenStringsList, $listOverlap) {
                 }
             }
             $strStartPrev = $strStart;
+        }
+        if ($strStartPrev != 0 and $a->strStart > $strStartPrev) {
+            $getInBetweenStrings = $getInBetweenStringsList[$strStartPrev];
+            if ($getInBetweenStrings->strStart <= $a->strStart and $a->strStart <= $getInBetweenStrings->strEnd) {
+                // do nothing
+            } else {
+                $getInBetweenStringsList[$a->strStart] = $a;
+            }
         }
     }
     ksort($getInBetweenStringsList);

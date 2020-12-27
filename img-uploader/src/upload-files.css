@@ -13,6 +13,7 @@
 }
 .flex-flow-wrap {
   flex-flow: wrap;
+  align-items: center;
 }
 .object-fit-cover {
   object-fit: cover;

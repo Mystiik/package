@@ -131,16 +131,16 @@ class Srcset {
 			// $SIZE_PREC = self::SIZE[$i - 1] ?? 0;
 
 			// Is resize update needed ?
-			$resizeNeed = !file_exists($_SERVER['DOCUMENT_ROOT'] . self::$savingPath . "" . "/" . self::$filename . ".jpg");
+			$resizeNeed = !file_exists($_SERVER['DOCUMENT_ROOT'] . self::$savingPath . "/$SIZE" . "/" . self::$filename . ".jpg");
 			// $resizeNeed = false;
 			if (self::RESIZE_UPDATE or $resizeNeed) {
-				if (!($SIZE == "src" or $SIZE < self::$maxUsefullSize)) {
-					// if (!($SIZE == "src" or $SIZE < self::$maxUsefullSize or true)) {
+				// if (!($SIZE == "src" or $SIZE < self::$maxUsefullSize)) {
+				if (!($SIZE == "src" or $SIZE < self::$maxUsefullSize or true)) {
 					continue;
 				} else {
 					// Check that the dst folder exists
-					if (!file_exists($_SERVER['DOCUMENT_ROOT'] . self::$savingPath . "")) {
-						mkdir($_SERVER['DOCUMENT_ROOT'] . self::$savingPath . "");
+					if (!file_exists($_SERVER['DOCUMENT_ROOT'] . self::$savingPath . "/$SIZE")) {
+						mkdir($_SERVER['DOCUMENT_ROOT'] . self::$savingPath . "/$SIZE");
 					}
 
 					// Resize
@@ -225,8 +225,8 @@ class Srcset {
 
 
 					// Save the image
-					if (!imagejpeg($dst_img, $_SERVER['DOCUMENT_ROOT'] . self::$savingPath . "" . "/" . self::$filename . ".jpg", self::JPG_COMPRESSION)) {
-						throw new \Exception("resize: ImageJpeg hasn't been created at: " . $_SERVER['DOCUMENT_ROOT'] . self::$savingPath . "" . "/" . self::$filename . ".jpg", 1);
+					if (!imagejpeg($dst_img, $_SERVER['DOCUMENT_ROOT'] . self::$savingPath . "/$SIZE" . "/" . self::$filename . ".jpg", self::JPG_COMPRESSION)) {
+						throw new \Exception("resize: ImageJpeg hasn't been created at: " . $_SERVER['DOCUMENT_ROOT'] . self::$savingPath . "/$SIZE" . "/" . self::$filename . ".jpg", 1);
 					};
 				}
 			}
@@ -249,7 +249,7 @@ class Srcset {
 		$return .= "data-srcset='";
 
 		foreach (self::SIZE as $SIZE) {
-			$path = self::$savingPath . "" . "/" . self::$filename . ".jpg";
+			$path = self::$savingPath . "/$SIZE" . "/" . self::$filename . ".jpg";
 
 			if ($SIZE != "src") {
 				if (file_exists($_SERVER['DOCUMENT_ROOT'] . "/$path")) {

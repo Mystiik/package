@@ -21,6 +21,7 @@ class Glb {
         unset($explodeStart[0]);
 
         foreach ($explodeStart as $explodeStartElement) {
+            $schemaStartValue = $strStart;
             $strStart += strlen($start);
 
             $explode = explode($end, $explodeStartElement);
@@ -63,11 +64,14 @@ class Glb {
                     $getInBetweenString->strStart = $strStart + 1;
                     $getInBetweenString->strEnd = $strStart + strlen($explodeElementClean) + 1;
                     $getInBetweenString->strPos = strpos($str, $explodeElementClean);
-                    $getInBetweenString->type = "";
-
-                    $array[$strStart] = $getInBetweenString;
+                    $getInBetweenString->schemaStart = $start;
+                    $getInBetweenString->schemaEnd = $end;
+                    $getInBetweenString->schemaStartValue = $schemaStartValue + 1;
+                    $getInBetweenString->schemaEndValue = $getInBetweenString->strEnd + $explodeClean[1] + strlen($end);
+                    $array[$getInBetweenString->strStart] = $getInBetweenString;
                 }
 
+                //
                 $strStart += strlen($explodeElementClean);
                 $strStart += $explodeClean[1];
 

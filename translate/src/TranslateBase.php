@@ -53,12 +53,13 @@ class TranslateBase {
             if (file_exists($filePath)) {
                 $content = file_get_contents($filePath);
                 krsort($textList);
-                $f = fopen($filePath, 'w');
+                // $f = fopen($filePath, 'w');
                 $filePathClean = str_replace(ROOT, '', $filePath);
                 $filePathClean = str_replace('\\', '/', $filePathClean);
                 $isArticle = !(strpos($filePathClean, 'article/') === false);
                 foreach ($textList as $text) {
                     // Change file content
+                    if (strlen(trim($text->str)) == 0) continue;
                     if (!$isArticle) {
                         if (
                             strpos($text->str, '<?= GN\Translate::text(') === false and
@@ -84,8 +85,8 @@ class TranslateBase {
                     $originNew[$filePathClean][$textNew] = $origin[$filePathClean][$textNew] ?? (string)rand();
                 }
                 // var_dump($content);
-                fwrite($f, $content);
-                fclose($f);
+                // fwrite($f, $content);
+                // fclose($f);
 
                 //
                 $originNew[$filePathClean] = array_reverse($originNew[$filePathClean], true);
@@ -111,7 +112,8 @@ class TranslateBase {
                 if (isset(pathinfo($fileInfo->getPathname())['extension']) and in_array(pathinfo($fileInfo->getPathname())['extension'], $extToInclude)) {
                     // var_dump($fileInfo->getPathname());
                     $content = file_get_contents($fileInfo->getPathname());
-                    // $getInBetweenStringsList = Glb::getInbetweenStrings($content, ">", "<");
+
+                    // Get Data
                     $getInBetweenStringsList = [];
                     $getInBetweenStringsList += Glb::getInbetweenStrings($content, "<title", "</title>");
                     $getInBetweenStringsList += Glb::getInbetweenStrings($content, "<h1", "</h1>");
@@ -123,22 +125,61 @@ class TranslateBase {
                     $getInBetweenStringsList += Glb::getInbetweenStrings($content, "<li>", "</li>");
                     $getInBetweenStringsList += Glb::getInbetweenStrings($content, "<label", "</label>");
                     $getInBetweenStringsList += Glb::getInbetweenStrings($content, "<p", "</p>");
+
+                    $getInBetweenStringsList += Glb::getInbetweenStrings($content, "<a", "</a>");
+                    $getInBetweenStringsList += Glb::getInbetweenStrings($content, "<img src=\"", "\"");
+                    $getInBetweenStringsList += Glb::getInbetweenStrings($content, "<span", "</span>");
                     ksort($getInBetweenStringsList);
 
-                    $aList = Glb::getInbetweenStrings($content, "<a", "</a>");
-                    $getInBetweenStringsList = addWithoutOverlap($getInBetweenStringsList, $aList);
+                    // var_dump($getInBetweenStringsList);
 
-                    $srcList = Glb::getInbetweenStrings($content, "<img src=\"", "\"");
-                    $getInBetweenStringsList = addWithoutOverlap($getInBetweenStringsList, $srcList);
+                    // Handle imbrication
+                    foreach ($getInBetweenStringsList as $element) {
+                        // First element
+                        if (!isset($array[$fileInfo->getPathname()])) {
+                            $array[$fileInfo->getPathname()][$element->strStart] = $element;
+                            continue;
+                        }
 
-                    $spanList = Glb::getInbetweenStrings($content, "<span", "</span>");
-                    $getInBetweenStringsList = addWithoutOverlap($getInBetweenStringsList, $spanList);
+                        //
+                        if (strpos($element->str, '<?= GN\Translate::text(') === false and strpos($element->str, '<?=') === false) {
+                            foreach ($array[$fileInfo->getPathname()] as $key => $elementIncluded) {
+                                if ($element->schemaStart != "<a" and $element->schemaStart != "<span") {
+                                    if ($elementIncluded->strStart < $element->strStart and $element->strEnd < $elementIncluded->strEnd) {
+                                        // 1st part
+                                        if ($elementIncluded->strStart < $element->schemaStartValue) {
+                                            $elementTmp = new \GN\GlbObjFunc\GetInBetweenString();
+                                            $elementTmp->str = substr($elementIncluded->str, 0, $element->schemaStartValue - $elementIncluded->strStart);
+                                            $elementTmp->strStart = $elementIncluded->strStart;
+                                            $elementTmp->strEnd = $element->schemaStartValue;
+                                            $elementTmp->schemaStartValue = $elementIncluded->schemaStartValue;
+                                            $elementTmp->schemaEndValue = $elementTmp->strEnd;
+                                            $array[$fileInfo->getPathname()][$key] = $elementTmp;
+                                        }
 
-                    foreach ($getInBetweenStringsList as $getInBetweenStrings) {
-                        if (!empty(trim($getInBetweenStrings->str))) {
-                            $array[$fileInfo->getPathname()][$getInBetweenStrings->strStart] = $getInBetweenStrings;
+                                        // 2nd part
+                                        $array[$fileInfo->getPathname()][$element->strStart] = $element;
+
+                                        // 3rd part
+                                        if ($element->schemaEndValue < $elementIncluded->strEnd) {
+                                            $elementTmp = new \GN\GlbObjFunc\GetInBetweenString();
+                                            $elementTmp->str = substr($elementIncluded->str, $element->schemaEndValue - $elementIncluded->strEnd);
+                                            $elementTmp->strStart = $element->schemaEndValue;
+                                            $elementTmp->strEnd = $elementIncluded->strEnd;
+                                            $elementTmp->schemaStartValue = $elementTmp->strStart;
+                                            $elementTmp->schemaEndValue = $elementIncluded->schemaEndValue;
+                                            $array[$fileInfo->getPathname()][$elementTmp->strStart] = $elementTmp;
+                                        }
+                                    } else {
+                                        $array[$fileInfo->getPathname()][$element->strStart] = $element;
+                                    }
+                                }
+                            }
+                        } else {
+                            $array[$fileInfo->getPathname()][$element->strStart] = $element;
                         }
                     }
+                    // var_dump($array[$fileInfo->getPathname()]);
                 }
             }
         }
@@ -157,33 +198,6 @@ class TranslateBase {
         }
         return $color;
     }
-}
-
-function addWithoutOverlap($getInBetweenStringsList, $listOverlap) {
-    foreach ($listOverlap as $a) {
-        $strStartPrev = 0;
-        foreach ($getInBetweenStringsList as $strStart => $getInBetweenStrings) {
-            if ($strStartPrev != 0 and $strStartPrev <= $a->strStart and $a->strStart <= $strStart) {
-                $getInBetweenStrings = $getInBetweenStringsList[$strStartPrev];
-                if ($getInBetweenStrings->strStart <= $a->strStart and $a->strStart <= $getInBetweenStrings->strEnd) {
-                    // do nothing
-                } else {
-                    $getInBetweenStringsList[$a->strStart] = $a;
-                }
-            }
-            $strStartPrev = $strStart;
-        }
-        if ($strStartPrev != 0 and $a->strStart > $strStartPrev) {
-            $getInBetweenStrings = $getInBetweenStringsList[$strStartPrev];
-            if ($getInBetweenStrings->strStart <= $a->strStart and $a->strStart <= $getInBetweenStrings->strEnd) {
-                // do nothing
-            } else {
-                $getInBetweenStringsList[$a->strStart] = $a;
-            }
-        }
-    }
-    ksort($getInBetweenStringsList);
-    return $getInBetweenStringsList;
 }
 
 

@@ -177,12 +177,11 @@ class TranslateBase {
                                             $elementTmp->schemaEndValue = $elementIncluded->schemaEndValue;
                                             $array[$fileInfo->getPathname()][$elementTmp->strStart] = $elementTmp;
                                         }
-
-                                        $isIncluded = true;
                                     } else {
                                         $array[$fileInfo->getPathname()][$element->strStart] = $element;
                                     }
                                 }
+                                if ($elementIncluded->strStart < $element->strStart and $element->strEnd < $elementIncluded->strEnd) $isIncluded = true;
                             }
 
                             if (($element->schemaStart == "<a" or $element->schemaStart == "<span") and $isIncluded == false) {

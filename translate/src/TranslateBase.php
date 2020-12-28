@@ -143,6 +143,7 @@ class TranslateBase {
 
                         //
                         if (strpos($element->str, '<?= GN\Translate::text(') === false and strpos($element->str, '<?=') === false) {
+                            $isIncluded = false;
                             foreach ($array[$fileInfo->getPathname()] as $key => $elementIncluded) {
                                 if ($element->schemaStart != "<a" and $element->schemaStart != "<span") {
                                     if ($elementIncluded->strStart < $element->strStart and $element->strEnd < $elementIncluded->strEnd) {
@@ -155,6 +156,8 @@ class TranslateBase {
                                             $elementTmp->schemaStartValue = $elementIncluded->schemaStartValue;
                                             $elementTmp->schemaEndValue = $elementTmp->strEnd;
                                             $array[$fileInfo->getPathname()][$key] = $elementTmp;
+                                        } else {
+                                            unset($array[$fileInfo->getPathname()][$key]);
                                         }
 
                                         // 2nd part
@@ -174,16 +177,21 @@ class TranslateBase {
                                             $elementTmp->schemaEndValue = $elementIncluded->schemaEndValue;
                                             $array[$fileInfo->getPathname()][$elementTmp->strStart] = $elementTmp;
                                         }
+
+                                        $isIncluded = true;
                                     } else {
                                         $array[$fileInfo->getPathname()][$element->strStart] = $element;
                                     }
                                 }
                             }
+
+                            if (($element->schemaStart == "<a" or $element->schemaStart == "<span") and $isIncluded == false) {
+                                $array[$fileInfo->getPathname()][$element->strStart] = $element;
+                            }
                         } else {
                             $array[$fileInfo->getPathname()][$element->strStart] = $element;
                         }
                     }
-                    // var_dump($array[$fileInfo->getPathname()]);
                 }
             }
         }

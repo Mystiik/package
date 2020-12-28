@@ -53,7 +53,7 @@ class TranslateBase {
             if (file_exists($filePath)) {
                 $content = file_get_contents($filePath);
                 krsort($textList);
-                // $f = fopen($filePath, 'w');
+                $f = fopen($filePath, 'w');
                 $filePathClean = str_replace(ROOT, '', $filePath);
                 $filePathClean = str_replace('\\', '/', $filePathClean);
                 $isArticle = !(strpos($filePathClean, 'article/') === false);
@@ -85,8 +85,8 @@ class TranslateBase {
                     $originNew[$filePathClean][$textNew] = $origin[$filePathClean][$textNew] ?? (string)rand();
                 }
                 // var_dump($content);
-                // fwrite($f, $content);
-                // fclose($f);
+                fwrite($f, $content);
+                fclose($f);
 
                 //
                 $originNew[$filePathClean] = array_reverse($originNew[$filePathClean], true);
@@ -158,6 +158,10 @@ class TranslateBase {
                                         }
 
                                         // 2nd part
+                                        if ($element->schemaStart == "<img src=\"") {
+                                            $restOfString = substr($elementIncluded->str, $element->schemaEndValue - $elementIncluded->strEnd);
+                                            $element->schemaEndValue += strlen(explode("/>", $restOfString)[0]) + strlen("/>");
+                                        }
                                         $array[$fileInfo->getPathname()][$element->strStart] = $element;
 
                                         // 3rd part

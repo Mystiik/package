@@ -24,13 +24,16 @@ class Translate extends TranslateBase {
     }
 
     static function text(string $text, array $args = []) {
-        $translatedId = self::$langOrigin[$text] ?? -1;
+        //
+        $translatedId = self::$langOrigin[self::jsonify($text)] ?? -1;
         $translatedText = self::$lang[$translatedId] ?? $text;
         // var_dump($translatedId);
 
-        foreach ($args as $arg => $value) {
-            $translatedText = str_replace('-' . $arg . '-', $value, $translatedText);
-        }
+        $translatedText = self::unjsonify($translatedText);
+
+        // foreach ($args as $arg => $value) {
+        //     $translatedText = str_replace('-' . $arg . '-', $value, $translatedText);
+        // }
 
         return $translatedText;
     }

@@ -53,14 +53,11 @@ class TranslateBase {
                     }
 
                     // Generate origin.json
-                    $textNew = str_replace([PHP_EOL, "\t", "\n", "\r", "\0", "\x0B"], "", $text->str);
-                    $textNew = str_replace("<?= GN\Translate::text('", "", $textNew);
+                    $textNew = str_replace("<?= GN\Translate::text('", "", $text->str);
                     $textNew = str_replace("'); ?" . ">", "", $textNew);
-                    $textNew = str_replace("\'", "'", $textNew);
-                    $textNew = str_replace("<", "(-", $textNew);
-                    $textNew = str_replace(">", "-)", $textNew);
-                    $textNew = str_replace("{", "(~", $textNew);
-                    $textNew = str_replace("}", "~)", $textNew);
+                    $textNew = str_replace("\'", "'",  $textNew);
+                    $textNew = self::jsonify($textNew);
+
                     $originOnlyKeyValue[$textNew] = $originOnlyKeyValue[$textNew] ?? (string)rand();
                     $originNew[$filePathClean][$textNew] = $originOnlyKeyValue[$textNew];
                 }
@@ -75,6 +72,26 @@ class TranslateBase {
         //
         Translate::save($originNew, $saveOriginArrayName);
         Translate::save(array_flip($originOnlyKeyValue), 'fr');
+    }
+
+    public static function jsonify($text) {
+        $text = str_replace([PHP_EOL, "\t", "\n", "\r", "\0", "\x0B"], "", $text);
+        $text = str_replace("<", "(-", $text);
+        $text = str_replace(">", "-)", $text);
+        $text = str_replace("{", "(~", $text);
+        $text = str_replace("}", "~)", $text);
+
+        while (strpos($text, "  ")) $text = str_replace("  ", " ", $text);
+        return $text;
+    }
+
+    public static function unjsonify($text) {
+        $text = str_replace("(-", "<", $text);
+        $text = str_replace("-)", ">", $text);
+        $text = str_replace("(~", "{", $text);
+        $text = str_replace("~)", "}", $text);
+
+        return $text;
     }
 
     public static function directoryIterator($path) {
@@ -167,6 +184,10 @@ class TranslateBase {
                                 $array[$fileInfo->getPathname()][$element->strStart] = $element;
                             }
                         } else {
+                            if (strpos($element->str, '<?= GN\Translate::text(') !== false) {
+                                $explode = explode("'); ?" . ">", $element->str);
+                                $element->str = $explode[0] . "'); ?" . ">";
+                            }
                             $array[$fileInfo->getPathname()][$element->strStart] = $element;
                         }
                     }

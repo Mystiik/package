@@ -8,23 +8,25 @@ namespace GN;
  */
 class Translate extends TranslateBase {
     static $langPath = ROOT . '/lang/';
-    static $langDefaut = 'fr';
     static $lang;
+    static $langOrigin;
     static $filePath;
 
-    static function init($lang, $filePath) {
+    static function init($lang) {
         // Folder creation
-        $dir = self::$langPath;
-        if (!file_exists($dir)) mkdir($dir . '/', 0777, true);
+        if (!file_exists(self::$langPath)) mkdir(self::$langPath . '/', 0777, true);
 
         // Array loading
-        if (file_exists(self::$langPath . $filePath)) {
-            self::$lang = include(self::$langPath . $filePath);
-        }
+        self::$langOrigin = self::read('origin', true);
+        self::$lang = self::read($lang);
+        // var_dump(self::$langOrigin);
+        // var_dump(self::$lang);
     }
 
     static function text(string $text, array $args = []) {
-        $translatedText = self::$lang[$text] ?? $text;
+        $translatedId = self::$langOrigin[$text] ?? -1;
+        $translatedText = self::$lang[$translatedId] ?? $text;
+        // var_dump($translatedId);
 
         foreach ($args as $arg => $value) {
             $translatedText = str_replace('-' . $arg . '-', $value, $translatedText);
@@ -49,7 +51,7 @@ class Translate extends TranslateBase {
         fclose($f);
     }
 
-    static function read($lang) {
+    static function read($lang, $onlyKeyValue = false) {
         $array = [];
         if (file_exists(self::$langPath . $lang . '.json')) {
             $json = file_get_contents(self::$langPath . $lang . '.json');
@@ -59,6 +61,17 @@ class Translate extends TranslateBase {
             $json = str_replace("\n\t}\n}", "}}", $json);
             $json = str_replace("\n\t},\n\t", "},", $json);
             $array = json_decode($json, true);
+        }
+
+        // On enlève le nom des fichiers
+        if ($onlyKeyValue) {
+            $arrayTmp = [];
+            foreach ($array as $valueList) {
+                foreach ($valueList as $key => $value) {
+                    $arrayTmp[$key] = (string)$value;
+                }
+            }
+            $array = $arrayTmp;
         }
         return $array;
     }

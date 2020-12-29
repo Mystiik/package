@@ -15,33 +15,12 @@ class TranslateBase {
     static $lang;
     static $filePath;
 
-    // static function init($lang, $filePath) {
-    //     // Folder creation
-    //     $dir = self::$langPath;
-    //     if (!file_exists($dir)) mkdir($dir . '/', 0777, true);
-
-    //     // Array loading
-    //     if (file_exists(self::$langPath . $filePath)) {
-    //         self::$lang = include(self::$langPath . $filePath);
-    //     }
-    // }
-
-    // static function text(string $text, array $args = []) {
-    //     $translatedText = self::$lang[$text] ?? $text;
-
-    //     foreach ($args as $arg => $value) {
-    //         $translatedText = str_replace('-' . $arg . '-', $value, $translatedText);
-    //     }
-
-    //     return $translatedText;
-    // }
-
 
     public static function setupRawFolderForTranslation(array $folderPathList, $saveOriginArrayName) {
         // Initialisation
         $origin = Translate::read($saveOriginArrayName);
+        $originOnlyKeyValue = Translate::read($saveOriginArrayName, true);
         $originNew = [];
-        $fr = [];
 
         // Search all texts in folder's files
         $array = [];
@@ -82,7 +61,8 @@ class TranslateBase {
                     $textNew = str_replace(">", "-)", $textNew);
                     $textNew = str_replace("{", "(~", $textNew);
                     $textNew = str_replace("}", "~)", $textNew);
-                    $originNew[$filePathClean][$textNew] = $origin[$filePathClean][$textNew] ?? (string)rand();
+                    $originOnlyKeyValue[$textNew] = $originOnlyKeyValue[$textNew] ?? (string)rand();
+                    $originNew[$filePathClean][$textNew] = $originOnlyKeyValue[$textNew];
                 }
                 // var_dump($content);
                 fwrite($f, $content);
@@ -90,12 +70,11 @@ class TranslateBase {
 
                 //
                 $originNew[$filePathClean] = array_reverse($originNew[$filePathClean], true);
-                $fr[$filePathClean] = array_flip($originNew[$filePathClean]);
             }
         }
         //
         Translate::save($originNew, $saveOriginArrayName);
-        Translate::save($fr, 'fr');
+        Translate::save(array_flip($originOnlyKeyValue), 'fr');
     }
 
     public static function directoryIterator($path) {

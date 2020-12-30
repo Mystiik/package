@@ -30,7 +30,7 @@ class TranslateBase {
 		// Parse files
 		$array = [];
 		foreach ($filePathList as $filePath) $array[$filePath] = self::parseHtml(file_get_contents($filePath), $filePath);
-		var_dump($array);
+		// var_dump($array);
 
 		// Generate translation files
 		foreach ($array as $filePath => $textList) {

@@ -50,10 +50,10 @@ class Translate extends TranslateBase {
             $contentLeft = substr($html, 0, $text->strStart);
             $contentRight = substr($html, $text->strEnd - strlen($html));
             $html = $contentLeft . self::text($text->str) . $contentRight;
-            var_dump('------------------------------------------------------------');
-            var_dump($contentLeft);
-            var_dump($text->str);
-            var_dump($contentRight);
+            // var_dump('------------------------------------------------------------');
+            // var_dump($contentLeft);
+            // var_dump($text->str);
+            // var_dump($contentRight);
         }
         return $html;
     }

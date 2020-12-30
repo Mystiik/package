@@ -72,7 +72,7 @@ class Glb {
                             $schemaStartValue = $getInBetweenString->schemaEndValue;
                         }
                         $array[$getInBetweenString->strStart] = $getInBetweenString;
-                        var_dump($explode);
+                        // var_dump($explode);
                     }
 
                     //
@@ -81,11 +81,14 @@ class Glb {
 
                     if (isset($explode[$i + 1])) {
                         $strStart += strlen($end);
-                        // $tmp = $explode;
-                        // unset($tmp[$i]);
-                        // if (count($explode) == 1) $strStart +=  strlen(implode($end, $explode));
+
                         if (!isset($explode[$i + 2])) {
                             $strStart +=  strlen($explode[$i + 1]);
+                            break;
+                        }
+                        if (strlen($end) == 1) {
+                            unset($explode[$i]);
+                            $strStart +=  strlen(implode($end, $explode));
                             break;
                         }
                     }

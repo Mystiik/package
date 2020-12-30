@@ -12,8 +12,6 @@ class Glb {
     //------------------------------------------------------------------------------------------------------------
     public static function getInbetweenStrings($str, $start, $end) {
         $array = [];
-        $str = str_replace("<?=", "-?=", $str);
-        $str = str_replace("?" . ">", "?-", $str); // fait bugger l'éditeur sinon
         $str = str_replace("<path", "-path", $str);
 
         $explodeStart = explode($start, $str);
@@ -55,8 +53,6 @@ class Glb {
 
                 //
                 if ($explodeElementClean != '') {
-                    $explodeElementClean = str_replace("-?=", "<?=", $explodeElementClean);
-                    $explodeElementClean = str_replace("?-", "?" . ">", $explodeElementClean);
                     $explodeElementClean = str_replace("-path", "<path", $explodeElementClean);
 
                     $getInBetweenString = new GetInBetweenString();

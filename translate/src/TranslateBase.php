@@ -60,6 +60,8 @@ class TranslateBase {
 
 		// Parse Data
 		$getInBetweenStringsList = [];
+		$getInBetweenStringsList += Glb::getInbetweenStrings($html, "<?php", "?" . ">");
+		$getInBetweenStringsList += Glb::getInbetweenStrings($html, "<?=", "?" . ">");
 		$getInBetweenStringsList += Glb::getInbetweenStrings($html, "<title", "</title>");
 		$getInBetweenStringsList += Glb::getInbetweenStrings($html, "<h1", "</h1>");
 		$getInBetweenStringsList += Glb::getInbetweenStrings($html, "<h2", "</h2>");
@@ -84,51 +86,52 @@ class TranslateBase {
 			}
 
 			//
-			if (strpos($element->str, '<?=') === false) {
-				$isIncluded = false;
-				foreach ($array as $key => $elementIncluded) {
-					if ($elementIncluded->strStart < $element->strStart and $element->strEnd < $elementIncluded->strEnd) {
-						if ($element->schemaStart != "<a" and $element->schemaStart != "<span") {
-							// 1st part
-							if ($elementIncluded->strStart < $element->schemaStartValue) {
-								$elementTmp = new \GN\GlbObjFunc\GetInBetweenString();
-								$elementTmp->str = substr($elementIncluded->str, 0, $element->schemaStartValue - $elementIncluded->strStart);
-								$elementTmp->strStart = $elementIncluded->strStart;
-								$elementTmp->strEnd = $element->schemaStartValue;
-								$elementTmp->schemaStartValue = $elementIncluded->schemaStartValue;
-								$elementTmp->schemaEndValue = $elementTmp->strEnd;
-								$array[$key] = $elementTmp;
-							} else {
-								unset($array[$key]);
-							}
-
-							// 2nd part
-							if ($element->schemaStart == "<img src=\"") {
-								$restOfString = substr($elementIncluded->str, $element->schemaEndValue - $elementIncluded->strEnd);
-								$element->schemaEndValue += strlen(explode(">", $restOfString)[0]) + strlen(">");
-							}
-							$array[$element->strStart] = $element;
-
-							// 3rd part
-							if ($element->schemaEndValue < $elementIncluded->strEnd) {
-								$elementTmp = new \GN\GlbObjFunc\GetInBetweenString();
-								$elementTmp->str = substr($elementIncluded->str, $element->schemaEndValue - $elementIncluded->strEnd);
-								$elementTmp->strStart = $element->schemaEndValue;
-								$elementTmp->strEnd = $elementIncluded->strEnd;
-								$elementTmp->strPos = $elementTmp->strStart;
-								$elementTmp->schemaStartValue = $elementTmp->strStart;
-								$elementTmp->schemaEndValue = $elementIncluded->schemaEndValue;
-								$array[$elementTmp->strStart] = $elementTmp;
-							}
+			$isIncluded = false;
+			foreach ($array as $key => $elementIncluded) {
+				if ($elementIncluded->strStart < $element->strStart and $element->strEnd < $elementIncluded->strEnd) {
+					if ($elementIncluded->schemaStartValue == "<?php" or $elementIncluded->schemaStartValue == "<?=") continue;
+					if ($element->schemaStart != "<a" and $element->schemaStart != "<span") {
+						// 1st part
+						if ($elementIncluded->strStart < $element->schemaStartValue) {
+							$elementTmp = new \GN\GlbObjFunc\GetInBetweenString();
+							$elementTmp->str = substr($elementIncluded->str, 0, $element->schemaStartValue - $elementIncluded->strStart);
+							$elementTmp->strStart = $elementIncluded->strStart;
+							$elementTmp->strEnd = $element->schemaStartValue;
+							$elementTmp->schemaStartValue = $elementIncluded->schemaStartValue;
+							$elementTmp->schemaEndValue = $elementTmp->strEnd;
+							$array[$key] = $elementTmp;
+						} else {
+							unset($array[$key]);
 						}
-						// var_dump($element);
-						$isIncluded = true;
+
+						// 2nd part
+						if ($element->schemaStart == "<img src=\"") {
+							$restOfString = substr($elementIncluded->str, $element->schemaEndValue - $elementIncluded->strEnd);
+							$element->schemaEndValue += strlen(explode(">", $restOfString)[0]) + strlen(">");
+						}
+						$array[$element->strStart] = $element;
+
+						// 3rd part
+						if ($element->schemaEndValue < $elementIncluded->strEnd) {
+							$elementTmp = new \GN\GlbObjFunc\GetInBetweenString();
+							$elementTmp->str = substr($elementIncluded->str, $element->schemaEndValue - $elementIncluded->strEnd);
+							$elementTmp->strStart = $element->schemaEndValue;
+							$elementTmp->strEnd = $elementIncluded->strEnd;
+							$elementTmp->strPos = $elementTmp->strStart;
+							$elementTmp->schemaStartValue = $elementTmp->strStart;
+							$elementTmp->schemaEndValue = $elementIncluded->schemaEndValue;
+							$array[$elementTmp->strStart] = $elementTmp;
+						}
 					}
+					// var_dump($element);
+					$isIncluded = true;
 				}
-				if ($isIncluded == false) $array[$element->strStart] = $element;
-			} else {
-				$array[$element->strStart] = $element;
 			}
+			if ($isIncluded == false) $array[$element->strStart] = $element;
+		}
+
+		foreach ($array as $key => $elementIncluded) {
+			if ($elementIncluded->schemaStart == "<?php" or $elementIncluded->schemaStart == "<?=") unset($array[$key]);
 		}
 		return $array;
 	}

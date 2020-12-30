@@ -31,11 +31,49 @@ class Translate extends TranslateBase {
 
         $translatedText = self::unjsonify($translatedText);
 
-        // foreach ($args as $arg => $value) {
-        //     $translatedText = str_replace('-' . $arg . '-', $value, $translatedText);
-        // }
+        foreach ($args as $arg => $value) {
+            $translatedText = str_replace('-' . $arg . '-', $value, $translatedText);
+        }
 
         return $translatedText;
+    }
+
+    public static function translateHtml($html) {
+        // Parse html
+        $array = self::parseHtml($html);
+        krsort($array);
+
+        foreach ($array as $text) {
+            // Modify text
+            if (strlen(trim($text->str)) == 0) continue;
+
+            $contentLeft = substr($html, 0, $text->strStart);
+            $contentRight = substr($html, $text->strEnd - strlen($html));
+            $html = $contentLeft . self::text($text->str) . $contentRight;
+        }
+        return $html;
+    }
+
+    public static function jsonify($text) {
+        // Clean text
+        $text = str_replace([PHP_EOL, "\t", "\n", "\r", "\0", "\x0B"], "", $text);
+        while (strpos($text, "  ")) $text = str_replace("  ", " ", $text);
+
+        // Prevent html interpretation
+        $text = str_replace("<", "(-", $text);
+        $text = str_replace(">", "-)", $text);
+        $text = str_replace("{", "(~", $text);
+        $text = str_replace("}", "~)", $text);
+        return $text;
+    }
+
+    public static function unjsonify($text) {
+        $text = str_replace("(-", "<", $text);
+        $text = str_replace("-)", ">", $text);
+        $text = str_replace("(~", "{", $text);
+        $text = str_replace("~)", "}", $text);
+
+        return $text;
     }
 
     static function save($array, $lang) {
@@ -44,9 +82,9 @@ class Translate extends TranslateBase {
 
         // File save
         $json = json_encode($array, JSON_UNESCAPED_UNICODE);
-        $json = str_replace(":{", ": {\n\t\t", $json);
+        $json = str_replace(":{", ": {\n\t", $json);
         $json = str_replace("{\"", "{\n\t\"", $json);
-        $json = str_replace("\",\"", "\",\n\t\t\"", $json);
+        $json = str_replace("\",\"", "\",\n\t\"", $json);
         $json = str_replace("}}", "\n\t}\n}", $json);
         $json = str_replace("},", "\n\t},\n\t", $json);
         $f = fopen(self::$langPath . $lang . '.json', "w");
@@ -58,9 +96,9 @@ class Translate extends TranslateBase {
         $array = [];
         if (file_exists(self::$langPath . $lang . '.json')) {
             $json = file_get_contents(self::$langPath . $lang . '.json');
-            $json = str_replace(": {\n\t\t", ":{", $json);
+            $json = str_replace(": {\n\t", ":{", $json);
             $json = str_replace("{\n\t\"", "{\"", $json);
-            $json = str_replace("\",\n\t\t\"", "\",\"", $json);
+            $json = str_replace("\",\n\t\"", "\",\"", $json);
             $json = str_replace("\n\t}\n}", "}}", $json);
             $json = str_replace("\n\t},\n\t", "},", $json);
             $array = json_decode($json, true);

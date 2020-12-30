@@ -10,7 +10,7 @@ class Glb {
     //------------------------------------------------------------------------------------------------------------
     // getInbetweenStrings
     //------------------------------------------------------------------------------------------------------------
-    static function getInbetweenStrings($str, $start, $end) {
+    public static function getInbetweenStrings($str, $start, $end) {
         $array = [];
         $str = str_replace("<?=", "-?=", $str);
         $str = str_replace("?" . ">", "?-", $str); // fait bugger l'éditeur sinon
@@ -90,11 +90,48 @@ class Glb {
     //------------------------------------------------------------------------------------------------------------
     // getSizeFromBytes
     //------------------------------------------------------------------------------------------------------------
-    static function getSizeFromBytes($bytes) {
+    public static function getSizeFromBytes($bytes) {
         $size = ["o", "Ko", "Mo", "Go", "To", "Po", "Eo", "Zo", "Yo"];
         $bytes = filesize($bytes);
         $factor = floor((strlen($bytes) - 1) / 3);
 
         return round($bytes / pow(1024, $factor), 2) . " " . $size[$factor];
+    }
+
+    //------------------------------------------------------------------------------------------------------------
+    // startBuffering
+    //------------------------------------------------------------------------------------------------------------
+    public static function startBuffering() {
+        ob_start();
+    }
+
+    //------------------------------------------------------------------------------------------------------------
+    // endBuffering
+    //------------------------------------------------------------------------------------------------------------
+    public static function endBuffering() {
+        $buffer = ob_get_contents();
+        ob_end_clean();
+        return $buffer;
+    }
+
+    //------------------------------------------------------------------------------------------------------------
+    // directoryIterator
+    //------------------------------------------------------------------------------------------------------------
+    public static function directoryIterator($path, $extToInclude = [], $folderToIgnore = []) {
+        $array = [];
+
+        foreach (new \DirectoryIterator($path) as $fileInfo) {
+            if ($fileInfo->isDir() and !$fileInfo->isDot() and !in_array($fileInfo->getFilename(), $folderToIgnore)) {
+                $arrayTmp = self::directoryIterator($fileInfo->getPathname(), $extToInclude, $folderToIgnore);
+                foreach ($arrayTmp as $filePath) $array[] = $filePath;
+            }
+
+            if ($fileInfo->isFile()) {
+                if (isset(pathinfo($fileInfo->getPathname())['extension']) and in_array(pathinfo($fileInfo->getPathname())['extension'], $extToInclude)) {
+                    $array[] = $fileInfo->getPathname();
+                }
+            }
+        }
+        return $array;
     }
 }

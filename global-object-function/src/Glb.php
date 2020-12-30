@@ -12,10 +12,11 @@ class Glb {
     //------------------------------------------------------------------------------------------------------------
     public static function getInbetweenStrings($str, $start, $end) {
         $array = [];
+        if ($end != "?" . ">") $str = str_replace("?" . ">", "?-", $str);
         $str = str_replace("<path", "-path", $str);
 
         $explodeStart = explode($start, $str);
-        $strStart = strlen($explodeStart[0]) - 1;
+        $strStart = strlen($explodeStart[0]);
         unset($explodeStart[0]);
 
         foreach ($explodeStart as $explodeStartElement) {
@@ -24,58 +25,71 @@ class Glb {
 
             $explode = explode($end, $explodeStartElement);
             if ($explode) {
-                // Clean the content #1
-                if (substr($start, -1) != ">") {
-                    $tmp = explode(">", $explode[0]);
-                    if (isset($tmp[1])) {
-                        $strStart += strlen($tmp[0]) + strlen(">");
-                        unset($tmp[0]);
-                        $explode[0] = implode(">", $tmp);
+                for ($i = 0; $i < count($explode); $i++) {
+                    // Clean the content #1
+                    if (substr($start, -1) != ">") {
+                        $tmp = explode(">", $explode[$i]);
+                        if (isset($tmp[1])) {
+                            $strStart += strlen($tmp[0]) + strlen(">");
+                            unset($tmp[0]);
+                            $explode[$i] = implode(">", $tmp);
+                        }
+                    }
+
+                    // Clean the content
+                    // $explodeElementClean = trim(str_replace([PHP_EOL, "\t", "\n", "\r", "\0", "\x0B"], "", $explode[$i]));
+                    $explodeElementClean = trim(str_replace([], "", $explode[$i]));
+
+                    // Will show spaces that have been removed from content
+                    $explodeClean = [0, 0];
+                    if ($explodeElementClean != '') {
+                        $explodeClean = explode($explodeElementClean, $explode[$i]);
+                        if ($explodeClean) {
+                            $explodeClean[0] = strlen($explodeClean[0] ?? '');
+                            $explodeClean[1] = strlen($explodeClean[1] ?? '');
+                        }
+                    } else {
+                        $explodeClean[0] = strlen($explode[$i]);
+                    }
+                    $strStart += $explodeClean[0];
+
+                    //
+                    if ($explodeElementClean != '') {
+                        $explodeElementClean = str_replace("?-", "?" . ">", $explodeElementClean);
+                        $explodeElementClean = str_replace("-path", "<path", $explodeElementClean);
+
+                        $getInBetweenString = new GetInBetweenString();
+                        $getInBetweenString->str = $explodeElementClean;
+                        $getInBetweenString->strStart = $strStart;
+                        $getInBetweenString->strEnd = $strStart + strlen($explodeElementClean);
+                        $getInBetweenString->strPos = strpos($str, $explodeElementClean);
+                        $getInBetweenString->schemaStart = $start;
+                        $getInBetweenString->schemaStartValue = $schemaStartValue;
+                        $getInBetweenString->schemaEndValue = $getInBetweenString->strEnd + $explodeClean[1];
+                        if (isset($explode[$i + 1])) {
+                            $getInBetweenString->schemaEnd = $end;
+                            $getInBetweenString->schemaEndValue += strlen($end);
+                            $schemaStartValue = $getInBetweenString->schemaEndValue;
+                        }
+                        $array[$getInBetweenString->strStart] = $getInBetweenString;
+                        var_dump($explode);
+                    }
+
+                    //
+                    $strStart += strlen($explodeElementClean);
+                    $strStart += $explodeClean[1];
+
+                    if (isset($explode[$i + 1])) {
+                        $strStart += strlen($end);
+                        // $tmp = $explode;
+                        // unset($tmp[$i]);
+                        // if (count($explode) == 1) $strStart +=  strlen(implode($end, $explode));
+                        if (!isset($explode[$i + 2])) {
+                            $strStart +=  strlen($explode[$i + 1]);
+                            break;
+                        }
                     }
                 }
-
-                // Clean the content
-                // $explodeElementClean = trim(str_replace([PHP_EOL, "\t", "\n", "\r", "\0", "\x0B"], "", $explode[0]));
-                $explodeElementClean = trim(str_replace([], "", $explode[0]));
-
-                // Will show spaces that have been removed from content
-                $explodeClean = [0, 0];
-                if ($explodeElementClean != '') {
-                    $explodeClean = explode($explodeElementClean, $explode[0]);
-                    if ($explodeClean) {
-                        $explodeClean[0] = strlen($explodeClean[0] ?? '');
-                        $explodeClean[1] = strlen($explodeClean[1] ?? '');
-                    }
-                } else {
-                    $explodeClean[0] = strlen($explode[0]);
-                }
-                $strStart += $explodeClean[0];
-
-                //
-                if ($explodeElementClean != '') {
-                    $explodeElementClean = str_replace("-path", "<path", $explodeElementClean);
-
-                    $getInBetweenString = new GetInBetweenString();
-                    $getInBetweenString->str = $explodeElementClean;
-                    $getInBetweenString->strStart = $strStart + 1;
-                    $getInBetweenString->strEnd = $strStart + strlen($explodeElementClean) + 1;
-                    $getInBetweenString->strPos = strpos($str, $explodeElementClean);
-                    $getInBetweenString->schemaStart = $start;
-                    $getInBetweenString->schemaEnd = $end;
-                    $getInBetweenString->schemaStartValue = $schemaStartValue + 1;
-                    $getInBetweenString->schemaEndValue = $getInBetweenString->strEnd + $explodeClean[1] + strlen($end);
-                    $array[$getInBetweenString->strStart] = $getInBetweenString;
-                }
-
-                //
-                $strStart += strlen($explodeElementClean);
-                $strStart += $explodeClean[1];
-
-                if (isset($explode[1])) {
-                    unset($explode[0]);
-                    $strStart +=  strlen(implode($end, $explode));
-                }
-                $strStart += strlen($end);
             } else {
                 $strStart += strlen($explodeStartElement);
             }

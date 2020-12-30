@@ -24,13 +24,13 @@ class TranslateBase {
 		// Get filePathList
 		$filePathList = [];
 		$extToInclude = ['php', 'txt'];
-		$folderToIgnore = ['vendor', 'assets', 'lang', 'test', 'admin'];
+		$folderToIgnore = ['vendor', 'assets', 'lang', 'test'];
 		foreach ($folderPathList as $folderPath) $filePathList += Glb::directoryIterator($folderPath, $extToInclude, $folderToIgnore);
 
 		// Parse files
 		$array = [];
-		foreach ($filePathList as $filePath) $array[$filePath] = self::parseHtml(file_get_contents($filePath));
-		// var_dump($array);
+		foreach ($filePathList as $filePath) $array[$filePath] = self::parseHtml(file_get_contents($filePath), $filePath);
+		var_dump($array);
 
 		// Generate translation files
 		foreach ($array as $filePath => $textList) {
@@ -54,7 +54,7 @@ class TranslateBase {
 		Translate::save($fr, 'fr');
 	}
 
-	public static function parseHtml($html) {
+	public static function parseHtml($html, $filePath = "") {
 		// Initialisation
 		$array = [];
 
@@ -71,6 +71,7 @@ class TranslateBase {
 		$getInBetweenStringsList += Glb::getInbetweenStrings($html, "<h6", "</h6>");
 		$getInBetweenStringsList += Glb::getInbetweenStrings($html, "<li>", "</li>");
 		$getInBetweenStringsList += Glb::getInbetweenStrings($html, "<label", "</label>");
+		$getInBetweenStringsList += Glb::getInbetweenStrings($html, "<button", "</button>");
 		$getInBetweenStringsList += Glb::getInbetweenStrings($html, "<p", "</p>");
 		$getInBetweenStringsList += Glb::getInbetweenStrings($html, "<a", "</a>");
 		$getInBetweenStringsList += Glb::getInbetweenStrings($html, "<img src=\"", "\"");
@@ -89,7 +90,7 @@ class TranslateBase {
 			$isIncluded = false;
 			foreach ($array as $key => $elementIncluded) {
 				if ($elementIncluded->strStart < $element->strStart and $element->strEnd < $elementIncluded->strEnd) {
-					if ($elementIncluded->schemaStartValue == "<?php" or $elementIncluded->schemaStartValue == "<?=") continue;
+					if ($elementIncluded->schemaStart == "<?php" or $elementIncluded->schemaStart == "<?=") continue;
 					if ($element->schemaStart != "<a" and $element->schemaStart != "<span") {
 						// 1st part
 						if ($elementIncluded->strStart < $element->schemaStartValue) {
@@ -97,6 +98,7 @@ class TranslateBase {
 							$elementTmp->str = substr($elementIncluded->str, 0, $element->schemaStartValue - $elementIncluded->strStart);
 							$elementTmp->strStart = $elementIncluded->strStart;
 							$elementTmp->strEnd = $element->schemaStartValue;
+							$elementTmp->strPos = $elementIncluded->strPos;
 							$elementTmp->schemaStartValue = $elementIncluded->schemaStartValue;
 							$elementTmp->schemaEndValue = $elementTmp->strEnd;
 							$array[$key] = $elementTmp;
@@ -127,7 +129,17 @@ class TranslateBase {
 					$isIncluded = true;
 				}
 			}
-			if ($isIncluded == false) $array[$element->strStart] = $element;
+			if ($isIncluded == false) {
+				$array[$element->strStart] = $element;
+				if ($element->schemaStart != "<span") {
+				}
+				// var_dump($filePath);
+				// if ($filePath == 'C:/wamp64/www/GEOS/\admin\multilang\gestion.php') {
+				// 	if ($element->schemaStart == "<span") {
+				// 		var_dump($element);
+				// 	}
+				// }
+			}
 		}
 
 		foreach ($array as $key => $elementIncluded) {

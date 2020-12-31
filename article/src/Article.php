@@ -17,13 +17,7 @@ class Article {
     use \GN\GlbObjFunc\__Get;
     use \GN\GlbObjFunc\Hydrate;
 
-    const CATEGORY_LIST = [
-        0 => 'Actualités',
-        1 => 'Ingenierie Projets',
-        2 => 'Assistance',
-        3 => 'Sûreté/Sécurité',
-        4 => 'Conseil',
-    ];
+    static public $CATEGORY_LIST;
 
     private $id;
     private $category;
@@ -45,6 +39,38 @@ class Article {
         $this->editorList = [];
 
         $this->hydrate($data);
+    }
+
+    static public function translateCategoryList($lang) {
+        switch ($lang) {
+            case 'en':
+                self::$CATEGORY_LIST =  [
+                    0 => 'News',
+                    1 => 'Engineering Projects',
+                    2 => 'Assistance',
+                    3 => 'Safety/Security',
+                    4 => 'Consulting',
+                ];
+                break;
+            case 'es':
+                self::$CATEGORY_LIST =  [
+                    0 => 'Noticias',
+                    1 => 'Proyectos de ingeniería',
+                    2 => 'Apoyo',
+                    3 => 'Seguridad / protección',
+                    4 => 'Concilio',
+                ];
+                break;
+            default:
+                self::$CATEGORY_LIST =  [
+                    0 => 'Actualités',
+                    1 => 'Ingenierie Projets',
+                    2 => 'Assistance',
+                    3 => 'Sûreté/Sécurité',
+                    4 => 'Conseil',
+                ];
+                break;
+        }
     }
 
     public function setId($id = null) {

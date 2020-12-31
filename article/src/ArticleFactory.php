@@ -38,6 +38,19 @@ class ArticleFactory {
         return $array;
     }
 
+    public static function getRandomArticle($path = self::DIR_SAVE_ARTICLE) {
+        $array = self::directoryIterator($_SERVER['DOCUMENT_ROOT'] . $path);
+
+        shuffle($array);
+        $dateParution = array_pop($array);
+        shuffle($dateParution);
+        $articleList = array_pop($dateParution);
+        shuffle($articleList);
+        $article = array_pop($articleList);
+
+        return $article;
+    }
+
     private static function directoryIterator($path) {
         $extToInclude = ['txt'];
         // $folderToIgnore = ['vendor', 'assets', 'lang'];

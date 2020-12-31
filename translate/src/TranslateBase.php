@@ -131,14 +131,6 @@ class TranslateBase {
 			}
 			if ($isIncluded == false) {
 				$array[$element->strStart] = $element;
-				if ($element->schemaStart != "<span") {
-				}
-				// var_dump($filePath);
-				// if ($filePath == 'C:/wamp64/www/GEOS/\admin\multilang\gestion.php') {
-				// 	if ($element->schemaStart == "<span") {
-				// 		var_dump($element);
-				// 	}
-				// }
 			}
 		}
 
